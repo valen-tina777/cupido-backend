@@ -1,6 +1,34 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+# apps/auth_app/models.py (AL INICIO DEL ARCHIVO, después de los imports)
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+
+
+class UsuarioManager(BaseUserManager):
+    def create_user(self, email, password=None, fechanacimiento=None, **extra_fields): 
+        if not email:
+            raise ValueError('El email debe ser configurado')
+        if not fechanacimiento: 
+            raise ValueError('La fecha de nacimiento es obligatoria.')
+
+        email = self.normalize_email(email)
+        user = self.model(email=email, fechanacimiento=fechanacimiento, **extra_fields) 
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, fechanacimiento=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+        
+        if 'username' in extra_fields:
+            extra_fields.pop('username')
+        
+        return self.create_user(email, password, fechanacimiento, **extra_fields)
+
+
 
 class Genero(models.Model):
     genero_id = models.AutoField(primary_key=True)
@@ -29,6 +57,7 @@ class Programa(models.Model):
 
 class Usuario(AbstractUser):
     usuario_id = models.AutoField(primary_key=True)
+    username = models.CharField(max_length=150, unique=True, blank=True, null=True)
     genero = models.ForeignKey(Genero, models.DO_NOTHING, blank=True, null=True)
     nombres = models.CharField(max_length=50)
     apellidos = models.CharField(max_length=50)
@@ -40,6 +69,8 @@ class Usuario(AbstractUser):
     fecharegistro = models.DateTimeField(blank=True, null=True)
     estadocuenta = models.CharField(max_length=1, blank=True, null=True)
     tyc = models.BooleanField(blank=True, null=True)
+    
+    objects = UsuarioManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['nombres', 'apellidos']

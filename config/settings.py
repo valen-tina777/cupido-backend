@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "apps.reports_app",
     "apps.chat_app",
     "apps.preferences_app",
+    'apps.like_app',
     # Third-party
     "rest_framework",
     "rest_framework_simplejwt",
